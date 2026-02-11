@@ -1,0 +1,32 @@
+{
+  "name": "coolhand-proxy",
+  "version": "0.1.0",
+  "description": "HTTPS MITM proxy for capturing LLM API calls and forwarding to Coolhand",
+  "type": "module",
+  "bin": {
+    "coolhand-proxy": "./src/cli.ts"
+  },
+  "scripts": {
+    "start": "npx tsx src/cli.ts",
+    "test": "npx tsx --test src/**/*.test.ts"
+  },
+  "keywords": ["llm", "proxy", "mitm", "openai", "anthropic", "gemini", "monitoring"],
+  "author": "Michael Carroll",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Coolhand-Labs/coolhand-proxy.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "commander": "^14.0.3",
+    "coolhand-node": "^0.1.1",
+    "mockttp": "^4.2.1",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  }
+}
