@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "npx tsx src/cli.ts",
-    "test": "npx tsx --test src/**/*.test.ts",
+    "test": "npx tsx --test src/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "keywords": ["llm", "proxy", "mitm", "openai", "anthropic", "gemini", "monitoring"],
