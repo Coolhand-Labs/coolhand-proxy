@@ -1,3 +1,5 @@
+import { parseBody } from "coolhand-node";
+
 export interface CapturedInteraction {
   request: {
     method: string;
@@ -77,16 +79,5 @@ export async function sendToCoolhand(
     }
   } catch (error) {
     console.error(`[coolhand-proxy] Failed to send to Coolhand:`, error);
-  }
-}
-
-function parseBody(
-  text: string | undefined | null
-): Record<string, unknown> | string | null {
-  if (!text) return null;
-  try {
-    return JSON.parse(text) as Record<string, unknown>;
-  } catch {
-    return text;
   }
 }

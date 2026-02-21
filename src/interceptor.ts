@@ -1,4 +1,4 @@
-import { PatternMatchingService } from "coolhand-node";
+import { PatternMatchingService, parseBody } from "coolhand-node";
 
 const patternService = new PatternMatchingService();
 
@@ -36,16 +36,4 @@ export function sanitizeHeaders(
   return sanitized;
 }
 
-/**
- * Parse a body string as JSON if possible, return raw string otherwise.
- */
-export function parseBody(
-  text: string | undefined | null
-): Record<string, unknown> | string | null {
-  if (!text) return null;
-  try {
-    return JSON.parse(text) as Record<string, unknown>;
-  } catch {
-    return text;
-  }
-}
+export { parseBody };

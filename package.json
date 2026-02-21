@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "npx tsx src/cli.ts",
-    "test": "npx tsx --test src/**/*.test.ts"
+    "test": "npx tsx --test src/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": ["llm", "proxy", "mitm", "openai", "anthropic", "gemini", "monitoring"],
   "author": "Michael Carroll",
@@ -22,7 +23,7 @@
   },
   "dependencies": {
     "commander": "^14.0.3",
-    "coolhand-node": "^0.1.1",
+    "coolhand-node": "github:Coolhand-Labs/coolhand-node#mikecarroll/fix-parse-json-array",
     "mockttp": "^4.2.1",
     "tsx": "^4.21.0"
   },
