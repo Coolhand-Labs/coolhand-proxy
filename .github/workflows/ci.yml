@@ -29,8 +29,14 @@ jobs:
         run: npm ci
 
       - name: Build coolhand-node from source
-        run: cd node_modules/coolhand-node && npm install --ignore-scripts && npm run build
-        if: ${{ hashFiles('node_modules/coolhand-node/dist/index.js') == '' }}
+        if: ${{ !hashFiles('node_modules/coolhand-node/dist/index.js') }}
+        run: |
+          git clone --depth 1 --branch mikecarroll/fix-parse-json-array https://github.com/Coolhand-Labs/coolhand-node.git /tmp/coolhand-node-src
+          cd /tmp/coolhand-node-src
+          npm ci
+          npm run build
+          mkdir -p $GITHUB_WORKSPACE/node_modules/coolhand-node/dist
+          cp -r dist/* $GITHUB_WORKSPACE/node_modules/coolhand-node/dist/
 
       - name: Run tests
         run: npm test
@@ -53,8 +59,14 @@ jobs:
         run: npm ci
 
       - name: Build coolhand-node from source
-        run: cd node_modules/coolhand-node && npm install --ignore-scripts && npm run build
-        if: ${{ hashFiles('node_modules/coolhand-node/dist/index.js') == '' }}
+        if: ${{ !hashFiles('node_modules/coolhand-node/dist/index.js') }}
+        run: |
+          git clone --depth 1 --branch mikecarroll/fix-parse-json-array https://github.com/Coolhand-Labs/coolhand-node.git /tmp/coolhand-node-src
+          cd /tmp/coolhand-node-src
+          npm ci
+          npm run build
+          mkdir -p $GITHUB_WORKSPACE/node_modules/coolhand-node/dist
+          cp -r dist/* $GITHUB_WORKSPACE/node_modules/coolhand-node/dist/
 
       - name: Run TypeScript type check
         run: npm run typecheck
