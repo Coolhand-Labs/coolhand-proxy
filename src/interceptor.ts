@@ -1,6 +1,12 @@
 import { PatternMatchingService, parseBody } from "coolhand-node";
 
-const patternService = new PatternMatchingService();
+let _patternService: PatternMatchingService | null = null;
+function getPatternService(): PatternMatchingService {
+  if (!_patternService) {
+    _patternService = new PatternMatchingService();
+  }
+  return _patternService;
+}
 
 /**
  * Check if a URL matches a known AI API pattern.
@@ -8,7 +14,7 @@ const patternService = new PatternMatchingService();
  * OpenAI, Anthropic, Google AI, Cohere, Hugging Face, etc.
  */
 export function shouldCapture(url: string): boolean {
-  const match = patternService.matchesAPIPatternFromURL(url);
+  const match = getPatternService().matchesAPIPatternFromURL(url);
   return match !== null;
 }
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env -S npx tsx
 import { Command } from "commander";
 import { spawn } from "child_process";
 import { getOrCreateCA, getCertPath, getDefaultCertDir } from "./certs.ts";
@@ -71,6 +71,13 @@ program
   .option("--silent", "Suppress proxy log output", false)
   .option("--api-endpoint <url>", "Override Coolhand API endpoint")
   .action(async (opts) => {
+    // When --silent, redirect console.log to stderr so dependency diagnostics
+    // (e.g. coolhand-node's PatternMatchingService) don't pollute stdout.
+    // Stdout is reserved for the JSON readiness line only.
+    if (opts.silent) {
+      console.log = (...args: unknown[]) => console.error(...args);
+    }
+
     const apiKey = process.env["COOLHAND_API_KEY"];
     if (!apiKey && !opts.debug) {
       console.error("[coolhand-proxy] WARNING: COOLHAND_API_KEY not set.");
@@ -87,13 +94,13 @@ program
 
     const certPath = getCertPath(opts.certDir);
 
-    // Output connection info for callers to consume
-    console.log(JSON.stringify({
+    // Output connection info for callers to consume (always to stdout)
+    process.stdout.write(JSON.stringify({
       port: proxy.port,
       pid: process.pid,
       certPath,
       httpProxy: `http://127.0.0.1:${proxy.port}`,
-    }));
+    }) + '\n');
 
     // Keep process alive until SIGTERM/SIGINT
     const shutdown = async () => {
