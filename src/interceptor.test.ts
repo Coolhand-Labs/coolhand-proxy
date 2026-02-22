@@ -69,4 +69,25 @@ describe("parseBody", () => {
     assert.equal(parseBody(undefined), null);
     assert.equal(parseBody(""), null);
   });
+
+  it("normalizes JSON arrays to newline-delimited JSON", () => {
+    const input = JSON.stringify([{ a: 1 }, { b: 2 }]);
+    const result = parseBody(input) as string;
+    const lines = result.split("\n");
+    assert.equal(lines.length, 2);
+    assert.deepEqual(JSON.parse(lines[0]!), { a: 1 });
+    assert.deepEqual(JSON.parse(lines[1]!), { b: 2 });
+  });
+});
+
+describe("sanitizeHeaders (additional keys)", () => {
+  it("redacts cookie header", () => {
+    const result = sanitizeHeaders({ cookie: "session=abc123" });
+    assert.equal(result["cookie"], "[REDACTED]");
+  });
+
+  it("redacts openai-api-key header", () => {
+    const result = sanitizeHeaders({ "openai-api-key": "sk-..." });
+    assert.equal(result["openai-api-key"], "[REDACTED]");
+  });
 });
