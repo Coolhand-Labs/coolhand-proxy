@@ -19,7 +19,15 @@
     "test": "npx tsx --test src/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": ["llm", "proxy", "mitm", "openai", "anthropic", "gemini", "monitoring"],
+  "keywords": [
+    "llm",
+    "proxy",
+    "mitm",
+    "openai",
+    "anthropic",
+    "gemini",
+    "monitoring"
+  ],
   "author": "Michael Carroll",
   "license": "Apache-2.0",
   "repository": {
@@ -31,7 +39,7 @@
   },
   "dependencies": {
     "commander": "^14.0.3",
-    "coolhand-node": "github:Coolhand-Labs/coolhand-node#mikecarroll/fix-parse-json-array",
+    "coolhand-node": "^0.2.0",
     "mockttp": "^4.2.1"
   },
   "devDependencies": {
