@@ -3,15 +3,31 @@
   "version": "0.1.0",
   "description": "HTTPS MITM proxy for capturing LLM API calls and forwarding to Coolhand",
   "type": "module",
+  "main": "dist/index.js",
   "bin": {
-    "coolhand-proxy": "./src/cli.ts"
+    "coolhand-proxy": "./dist/cli.js"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
+    "build": "tsup",
+    "prepack": "npm run build",
     "start": "npx tsx src/cli.ts",
     "test": "npx tsx --test src/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": ["llm", "proxy", "mitm", "openai", "anthropic", "gemini", "monitoring"],
+  "keywords": [
+    "llm",
+    "proxy",
+    "mitm",
+    "openai",
+    "anthropic",
+    "gemini",
+    "monitoring"
+  ],
   "author": "Michael Carroll",
   "license": "Apache-2.0",
   "repository": {
@@ -23,11 +39,13 @@
   },
   "dependencies": {
     "commander": "^14.0.3",
-    "coolhand-node": "github:Coolhand-Labs/coolhand-node#mikecarroll/fix-parse-json-array",
-    "mockttp": "^4.2.1",
-    "tsx": "^4.21.0"
+    "coolhand-node": "^0.2.0",
+    "mockttp": "^4.2.1"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }

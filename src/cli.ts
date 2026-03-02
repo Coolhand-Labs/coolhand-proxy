@@ -1,4 +1,3 @@
-#!/usr/bin/env -S npx tsx
 import { Command } from "commander";
 import { spawn } from "child_process";
 import { getOrCreateCA, getCertPath, getDefaultCertDir } from "./certs.ts";

@@ -41,15 +41,7 @@ describe("startProxy", () => {
       debug: true,
     });
 
-    // Make a request through the proxy to a non-LLM endpoint
-    const response = await fetch("https://httpbin.org/get", {
-      dispatcher: undefined, // use default
-      // @ts-ignore - node fetch proxy support
-      signal: AbortSignal.timeout(10000),
-    });
-
-    // Direct fetch won't go through our proxy without explicit proxy config,
-    // but we can at least verify the proxy started and is accepting connections
+    // Verify the proxy started and is accepting connections
     const net = await import("net");
     const connected = await new Promise<boolean>((resolve) => {
       const socket = net.createConnection(proxy!.port, "127.0.0.1", () => {

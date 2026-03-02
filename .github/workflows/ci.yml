@@ -10,6 +10,7 @@ jobs:
   test:
     name: Test (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     strategy:
       matrix:
         node-version: [20, 22]
@@ -27,16 +28,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Build coolhand-node from source
-        if: ${{ !hashFiles('node_modules/coolhand-node/dist/index.js') }}
-        run: |
-          git clone --depth 1 --branch mikecarroll/fix-parse-json-array https://github.com/Coolhand-Labs/coolhand-node.git /tmp/coolhand-node-src
-          cd /tmp/coolhand-node-src
-          npm ci
-          npm run build
-          mkdir -p $GITHUB_WORKSPACE/node_modules/coolhand-node/dist
-          cp -r dist/* $GITHUB_WORKSPACE/node_modules/coolhand-node/dist/
 
       - name: Run tests
         run: npm test
@@ -58,15 +49,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build coolhand-node from source
-        if: ${{ !hashFiles('node_modules/coolhand-node/dist/index.js') }}
-        run: |
-          git clone --depth 1 --branch mikecarroll/fix-parse-json-array https://github.com/Coolhand-Labs/coolhand-node.git /tmp/coolhand-node-src
-          cd /tmp/coolhand-node-src
-          npm ci
-          npm run build
-          mkdir -p $GITHUB_WORKSPACE/node_modules/coolhand-node/dist
-          cp -r dist/* $GITHUB_WORKSPACE/node_modules/coolhand-node/dist/
-
       - name: Run TypeScript type check
         run: npm run typecheck
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify CLI shebang
+        run: head -1 dist/cli.js | grep -q '#!/usr/bin/env node'
+
+      - name: Verify dist output
+        run: |
+          test -f dist/cli.js
+          test -f dist/index.js

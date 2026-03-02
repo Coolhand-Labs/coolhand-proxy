@@ -7,9 +7,12 @@ import * as fs from "fs";
 import { getOrCreateCA, getCertPath } from "./certs.ts";
 
 const CLI_PATH = path.join(import.meta.dirname, "cli.ts");
+// Invoke tsx directly so SIGTERM reaches the CLI process without going through
+// npm exec wrappers that don't forward signals to their children.
+const TSX_BIN = path.resolve(import.meta.dirname, "..", "node_modules", ".bin", "tsx");
 
 function spawnCLI(args: string[], env?: Record<string, string>): ChildProcess {
-  return spawn("npx", ["tsx", CLI_PATH, ...args], {
+  return spawn(TSX_BIN, [CLI_PATH, ...args], {
     env: { ...process.env, ...env },
     stdio: ["pipe", "pipe", "pipe"],
   });
@@ -70,9 +73,11 @@ async function runStart(
     });
   });
 
-  // Kill the proxy process
+  // Kill the proxy process and explicitly destroy streams to release pipe handles
   child.kill("SIGTERM");
   await new Promise<void>((resolve) => child.on("exit", () => resolve()));
+  child.stdout?.destroy();
+  child.stderr?.destroy();
 
   return { stdout, stderr, json };
 }
