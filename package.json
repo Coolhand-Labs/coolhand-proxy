@@ -1,6 +1,6 @@
 {
   "name": "coolhand-proxy",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "HTTPS MITM proxy for capturing LLM API calls and forwarding to Coolhand",
   "type": "module",
   "main": "dist/index.js",
@@ -10,6 +10,7 @@
   "files": [
     "dist/",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
