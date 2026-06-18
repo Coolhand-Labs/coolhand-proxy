@@ -17,7 +17,7 @@
     "build": "tsup",
     "prepack": "npm run build",
     "start": "npx tsx src/cli.ts",
-    "test": "npx tsx --test src/*.test.ts",
+    "test": "npx tsx --test \"src/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [

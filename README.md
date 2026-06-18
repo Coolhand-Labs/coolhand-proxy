@@ -63,6 +63,23 @@ export SSL_CERT_FILE=/Users/you/.coolhand-proxy/ca-cert.pem
 export NODE_EXTRA_CA_CERTS=/Users/you/.coolhand-proxy/ca-cert.pem
 ```
 
+### Option 3: System-wide background daemon (macOS)
+
+For non-technical users, `install` sets up the proxy as an always-on background
+service that captures LLM traffic across the whole machine — no env vars, no wrapping,
+survives reboots. It requires `sudo` (it trusts the CA in the System keychain, registers
+a LaunchDaemon, and points the system network proxy at itself).
+
+```bash
+sudo coolhand-proxy install --api-key your_api_key_here
+coolhand-proxy status      # check it's running and the proxy is pointed at us
+sudo coolhand-proxy uninstall   # fully revert
+```
+
+> macOS only for now. GUI/Electron AI apps honor the system proxy; CLI tools are also
+> covered via machine-level `HTTP_PROXY`/`HTTPS_PROXY`. Apps that pin certificates or
+> ignore the system proxy are not captured.
+
 ## Commands
 
 ### `coolhand-proxy wrap <command>`
@@ -103,6 +120,38 @@ Generates a CA certificate and key in `~/.coolhand-proxy` (or `--cert-dir`). Run
 
 ```bash
 coolhand-proxy install-ca [--cert-dir <dir>]
+```
+
+### `coolhand-proxy install` (macOS)
+
+Installs the proxy as an always-on background daemon: trusts the CA in the System
+keychain, writes a LaunchDaemon (`/Library/LaunchDaemons/com.coolhandlabs.proxy.plist`)
+that starts at boot and restarts on failure, and points the system network proxy at the
+local daemon. Requires `sudo`.
+
+```bash
+sudo coolhand-proxy install [--api-key <key>]
+```
+
+The API key (from `--api-key` or `COOLHAND_API_KEY`) is baked into the daemon's
+environment so it can forward captured traffic with no terminal session.
+
+### `coolhand-proxy uninstall` (macOS)
+
+Reverses `install`: turns off the system proxy on each network service, unloads and
+removes the LaunchDaemon, and removes the trusted CA from the keychain. Requires `sudo`.
+
+```bash
+sudo coolhand-proxy uninstall
+```
+
+### `coolhand-proxy status` (macOS)
+
+Reports whether the daemon is loaded, whether the CA is trusted, and whether each network
+service's proxy is pointed at the daemon.
+
+```bash
+coolhand-proxy status
 ```
 
 ## Configuration
