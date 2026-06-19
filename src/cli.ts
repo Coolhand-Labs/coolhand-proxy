@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { spawn } from "child_process";
 import { getOrCreateCA, getCertPath, getDefaultCertDir } from "./certs.ts";
+import { loadApiKey, resolveConfigDir } from "./creds.ts";
 import { startProxy } from "./proxy.ts";
 import { install } from "./daemon/install.ts";
 import { uninstall } from "./daemon/uninstall.ts";
@@ -23,9 +24,9 @@ program
   .option("--api-endpoint <url>", "Override Coolhand API endpoint")
   .argument("<command...>", "Command and arguments to run")
   .action(async (commandArgs: string[], opts) => {
-    const apiKey = process.env["COOLHAND_API_KEY"];
+    const apiKey = await loadApiKey();
     if (!apiKey && !opts.debug) {
-      console.error("[coolhand-proxy] WARNING: COOLHAND_API_KEY not set. Captured logs will not be forwarded.");
+      console.error("[coolhand-proxy] WARNING: No API key found (COOLHAND_API_KEY not set and no coolhand-cli credentials found). Captured logs will not be forwarded.");
     }
 
     const ca = await getOrCreateCA(opts.certDir);
@@ -80,9 +81,9 @@ program
       console.log = (...args: unknown[]) => console.error(...args);
     }
 
-    const apiKey = process.env["COOLHAND_API_KEY"];
+    const apiKey = await loadApiKey();
     if (!apiKey && !opts.debug) {
-      console.error("[coolhand-proxy] WARNING: COOLHAND_API_KEY not set.");
+      console.error("[coolhand-proxy] WARNING: No API key found (COOLHAND_API_KEY not set and no coolhand-cli credentials found).");
     }
 
     const ca = await getOrCreateCA(opts.certDir);
@@ -158,15 +159,15 @@ function warnIfNotRoot(): void {
 program
   .command("install")
   .description("Install the always-on background daemon (macOS, requires sudo)")
-  .option("--api-key <key>", "Coolhand API key (defaults to COOLHAND_API_KEY env)")
-  .action(async (opts) => {
+  .action(async () => {
     requireMacOS();
     warnIfNotRoot();
-    const apiKey = opts.apiKey ?? process.env["COOLHAND_API_KEY"] ?? "";
+    const configDir = resolveConfigDir();
+    const apiKey = await loadApiKey();
     if (!apiKey) {
-      console.error("[coolhand-proxy] WARNING: no API key provided. The proxy will run but captured traffic will be discarded. Pass --api-key or set COOLHAND_API_KEY.");
+      console.error(`[coolhand-proxy] WARNING: no API key found in ${configDir}. Run 'coolhand login' first.`);
     }
-    await install(apiKey, { log: (m) => console.log(m) });
+    await install(configDir, { log: (m) => console.log(m) });
   });
 
 program

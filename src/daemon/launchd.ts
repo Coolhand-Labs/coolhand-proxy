@@ -5,8 +5,9 @@ export interface PlistOptions {
   readonly label: string;
   /** Full argv the daemon runs, e.g. [nodePath, cliJsPath, "start", "--port", ...]. */
   readonly programArguments: readonly string[];
-  /** Baked into EnvironmentVariables so the daemon has it with no terminal. */
-  readonly apiKey: string;
+  /** Path to the coolhand-cli config dir (~/.coolhand). Baked in so the daemon
+   *  reads the API key from the file at runtime — key rotations need no reinstall. */
+  readonly configDir: string;
   /** Combined stdout+stderr log destination. */
   readonly logFile: string;
   readonly runAtLoad?: boolean;
@@ -29,7 +30,7 @@ function xmlEscape(value: string): string {
  * KeepAlive restarts it if it ever exits — together: "always on, like malware."
  */
 export function generatePlist(opts: PlistOptions): string {
-  const { label, programArguments, apiKey, logFile, runAtLoad = true, keepAlive = true } = opts;
+  const { label, programArguments, configDir, logFile, runAtLoad = true, keepAlive = true } = opts;
 
   const argEntries = programArguments
     .map((arg) => `    <string>${xmlEscape(arg)}</string>`)
@@ -47,8 +48,8 @@ ${argEntries}
   </array>
   <key>EnvironmentVariables</key>
   <dict>
-    <key>COOLHAND_API_KEY</key>
-    <string>${xmlEscape(apiKey)}</string>
+    <key>COOLHAND_CONFIG_DIR</key>
+    <string>${xmlEscape(configDir)}</string>
   </dict>
   <key>RunAtLoad</key>
   <${runAtLoad ? "true" : "false"}/>

@@ -11,7 +11,7 @@ describe("generatePlist", () => {
   const xml = generatePlist({
     label: "com.coolhandlabs.proxy",
     programArguments: ["/usr/bin/node", "/opt/app/cli.js", "start", "--port", "47821"],
-    apiKey: "secret&<key>",
+    configDir: "/Users/x&<me>/.coolhand",
     logFile: "/Users/x/.coolhand-proxy/daemon.log",
   });
 
@@ -31,12 +31,12 @@ describe("generatePlist", () => {
   });
 
   it("escapes XML special characters in values", () => {
-    assert.ok(xml.includes("secret&amp;&lt;key&gt;"));
-    assert.ok(!xml.includes("secret&<key>"));
+    assert.ok(xml.includes("/Users/x&amp;&lt;me&gt;/.coolhand"));
+    assert.ok(!xml.includes("/Users/x&<me>/.coolhand"));
   });
 
-  it("bakes the API key under EnvironmentVariables", () => {
-    assert.match(xml, /<key>EnvironmentVariables<\/key>[\s\S]*<key>COOLHAND_API_KEY<\/key>/);
+  it("sets COOLHAND_CONFIG_DIR under EnvironmentVariables", () => {
+    assert.match(xml, /<key>EnvironmentVariables<\/key>[\s\S]*<key>COOLHAND_CONFIG_DIR<\/key>/);
   });
 
   it("points stdout and stderr at the log file", () => {
@@ -48,7 +48,7 @@ describe("generatePlist", () => {
     const x = generatePlist({
       label: "l",
       programArguments: ["a"],
-      apiKey: "",
+      configDir: "/Users/x/.coolhand",
       logFile: "/l",
       runAtLoad: false,
       keepAlive: false,

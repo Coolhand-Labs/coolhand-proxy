@@ -38,7 +38,7 @@ export function defaultProgramArguments(certDir: string): string[] {
  * networksetup are all privileged). Idempotent: re-running re-trusts the cert,
  * rewrites the plist, reloads the service, and re-points every network service.
  */
-export async function install(apiKey: string, deps: DaemonDeps = {}): Promise<void> {
+export async function install(configDir: string, deps: DaemonDeps = {}): Promise<void> {
   const exec = deps.exec ?? run;
   const log = deps.log ?? (() => {});
   const { certDir, logFile } = getDaemonPaths();
@@ -54,7 +54,7 @@ export async function install(apiKey: string, deps: DaemonDeps = {}): Promise<vo
   const plist = generatePlist({
     label: SERVICE_LABEL,
     programArguments: defaultProgramArguments(certDir),
-    apiKey,
+    configDir,
     logFile,
   });
   fs.mkdirSync(path.dirname(logFile), { recursive: true });
