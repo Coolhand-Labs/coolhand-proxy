@@ -27,7 +27,9 @@ export async function getOrCreateCA(
     };
   }
 
-  const ca = await mockttp.generateCACertificate();
+  const ca = await mockttp.generateCACertificate({
+    subject: { commonName: "Coolhand Proxy CA", organizationName: "Coolhand Labs" },
+  });
   fs.mkdirSync(certDir, { recursive: true });
   fs.writeFileSync(keyPath, ca.key, { mode: 0o600 });
   fs.writeFileSync(certPath, ca.cert, { mode: 0o644 });
