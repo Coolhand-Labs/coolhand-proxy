@@ -8,6 +8,24 @@ function getPatternService(): PatternMatchingService {
   return _patternService;
 }
 
+/** Wait until the pattern service has finished loading (up to timeoutMs). */
+export async function waitForPatterns(timeoutMs = 2000): Promise<void> {
+  const svc = getPatternService();
+  const deadline = Date.now() + timeoutMs;
+  while (!svc.isInitialized && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 50));
+  }
+}
+
+/**
+ * Returns the set of hostnames whose TLS the proxy should intercept.
+ * All other HTTPS traffic is tunneled untouched — browsers see real certs.
+ */
+export function getInterceptHostnames(): string[] {
+  const patterns = getPatternService().apiPatterns as Array<{ domains?: string[] }> | undefined;
+  return patterns?.flatMap((p) => p.domains ?? []) ?? [];
+}
+
 /**
  * Check if a URL matches a known AI API pattern.
  * Uses coolhand-node's PatternMatchingService which covers

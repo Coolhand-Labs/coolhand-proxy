@@ -1,6 +1,6 @@
 import * as mockttp from "mockttp";
 import type { CompletedRequest, CompletedResponse } from "mockttp";
-import { shouldCapture, sanitizeHeaders } from "./interceptor.ts";
+import { shouldCapture, sanitizeHeaders, waitForPatterns, getInterceptHostnames } from "./interceptor.ts";
 import { sendToCoolhand, type CapturedInteraction } from "./sender.ts";
 import type { CACredentials } from "./certs.ts";
 
@@ -33,8 +33,20 @@ export async function startProxy(
   ca: CACredentials,
   options: ProxyOptions
 ): Promise<ProxyInstance> {
+  // Only MITM connections to known LLM API hostnames — everything else
+  // (browsers, OS updates, etc.) is tunneled without interception so clients
+  // see real server certs and aren't affected by our CA.
+  await waitForPatterns();
+  const interceptHostnames = getInterceptHostnames();
+
   const server = mockttp.getLocal({
-    https: { key: ca.key, cert: ca.cert },
+    https: {
+      key: ca.key,
+      cert: ca.cert,
+      ...(interceptHostnames.length > 0 && {
+        tlsInterceptOnly: interceptHostnames.map((hostname) => ({ hostname })),
+      }),
+    },
   });
 
   // Track pending requests by ID for pairing with responses
