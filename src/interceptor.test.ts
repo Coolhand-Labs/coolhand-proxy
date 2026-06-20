@@ -1,6 +1,21 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { shouldCapture, sanitizeHeaders, parseBody } from "./interceptor.ts";
+import { shouldCapture, sanitizeHeaders, parseBody, getInterceptHostnames } from "./interceptor.ts";
+
+describe("getInterceptHostnames", () => {
+  it("returns only API subdomains, not bare domains covered by a subdomain", () => {
+    const hostnames = getInterceptHostnames();
+    // api.openai.com is present, so bare openai.com should be filtered out
+    assert.ok(hostnames.includes("api.openai.com"), "api.openai.com should be intercepted");
+    assert.ok(!hostnames.includes("openai.com"), "bare openai.com should be dropped");
+  });
+
+  it("does not drop domains that have no more-specific subdomain present", () => {
+    const hostnames = getInterceptHostnames();
+    assert.ok(hostnames.includes("api.anthropic.com"));
+    assert.ok(hostnames.includes("generativelanguage.googleapis.com"));
+  });
+});
 
 describe("shouldCapture", () => {
   it("captures Gemini API URLs", () => {

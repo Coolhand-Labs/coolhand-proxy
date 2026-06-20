@@ -20,10 +20,15 @@ export async function waitForPatterns(timeoutMs = 2000): Promise<void> {
 /**
  * Returns the set of hostnames whose TLS the proxy should intercept.
  * All other HTTPS traffic is tunneled untouched — browsers see real certs.
+ *
+ * Bare domains (e.g. "openai.com") are dropped when a more-specific subdomain
+ * (e.g. "api.openai.com") is also present — avoids MITM-ing browser traffic
+ * that hits the apex domain before redirecting to www.
  */
 export function getInterceptHostnames(): string[] {
   const patterns = getPatternService().apiPatterns as Array<{ domains?: string[] }> | undefined;
-  return patterns?.flatMap((p) => p.domains ?? []) ?? [];
+  const all = patterns?.flatMap((p) => p.domains ?? []) ?? [];
+  return all.filter((d) => !all.some((other) => other !== d && other.endsWith(`.${d}`)));
 }
 
 /**
