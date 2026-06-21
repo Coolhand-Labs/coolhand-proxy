@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import { getCertPath } from "../certs.ts";
+import { resolveHomeDir } from "../creds.ts";
 import { PROXY_PORT, getDaemonPaths } from "./constants.ts";
 import { run, type Executor } from "./exec.ts";
 import { fingerprintSha1, isCertPresent } from "./trust-store.ts";
@@ -23,7 +24,7 @@ export interface DaemonStatus {
 /** Gather a full picture of whether the daemon is installed and active. */
 export async function getStatus(deps: DaemonDeps = {}): Promise<DaemonStatus> {
   const exec: Executor = deps.exec ?? run;
-  const { certDir } = getDaemonPaths();
+  const { certDir } = getDaemonPaths(resolveHomeDir());
 
   const daemonLoaded = await isLoaded(undefined, exec);
 

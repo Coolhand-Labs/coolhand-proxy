@@ -71,7 +71,8 @@ survives reboots. It requires `sudo` (it trusts the CA in the System keychain, r
 a LaunchDaemon, and points the system network proxy at itself).
 
 ```bash
-sudo coolhand-proxy install --api-key your_api_key_here
+coolhand login             # store credentials once (reads from ~/.coolhand/config.json)
+sudo coolhand-proxy install
 coolhand-proxy status      # check it's running and the proxy is pointed at us
 sudo coolhand-proxy uninstall   # fully revert
 ```
@@ -130,11 +131,13 @@ that starts at boot and restarts on failure, and points the system network proxy
 local daemon. Requires `sudo`.
 
 ```bash
-sudo coolhand-proxy install [--api-key <key>]
+sudo coolhand-proxy install
 ```
 
-The API key (from `--api-key` or `COOLHAND_API_KEY`) is baked into the daemon's
-environment so it can forward captured traffic with no terminal session.
+The API key is read automatically from the credentials stored by `coolhand login`
+(`~/.coolhand/config.json`). Alternatively, set `COOLHAND_API_KEY` in your environment
+before running `install`. The config file path is baked into the daemon so key rotations
+via `coolhand login` take effect on the next daemon restart with no reinstall needed.
 
 ### `coolhand-proxy uninstall` (macOS)
 

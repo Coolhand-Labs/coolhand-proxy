@@ -9,14 +9,22 @@ interface CoolhandConfig {
 }
 
 /**
+ * Resolves the real user's home directory, handling sudo on macOS.
+ * Under sudo, os.homedir() returns /var/root; SUDO_USER gives the real user.
+ */
+export function resolveHomeDir(): string {
+  const sudoUser = process.env["SUDO_USER"];
+  if (sudoUser) return join("/Users", sudoUser);
+  return homedir();
+}
+
+/**
  * Resolves the coolhand-cli config directory, handling the case where the
  * process is running under sudo (SUDO_USER points to the real user on macOS).
  */
 export function resolveConfigDir(): string {
   if (process.env["COOLHAND_CONFIG_DIR"]) return process.env["COOLHAND_CONFIG_DIR"];
-  const sudoUser = process.env["SUDO_USER"];
-  if (sudoUser) return join("/Users", sudoUser, ".coolhand");
-  return join(homedir(), ".coolhand");
+  return join(resolveHomeDir(), ".coolhand");
 }
 
 export async function loadApiKey(): Promise<string | undefined> {

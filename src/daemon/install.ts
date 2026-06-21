@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { getOrCreateCA, getCertPath } from "../certs.ts";
+import { resolveHomeDir } from "../creds.ts";
 import { PLIST_PATH, PROXY_PORT, SERVICE_LABEL, getDaemonPaths } from "./constants.ts";
 import { run, type Executor } from "./exec.ts";
 import { trustCert } from "./trust-store.ts";
@@ -41,7 +42,7 @@ export function defaultProgramArguments(certDir: string): string[] {
 export async function install(configDir: string, deps: DaemonDeps = {}): Promise<void> {
   const exec = deps.exec ?? run;
   const log = deps.log ?? (() => {});
-  const { certDir, logFile } = getDaemonPaths();
+  const { certDir, logFile } = getDaemonPaths(resolveHomeDir());
 
   log("1/5 Ensuring CA certificate exists…");
   await getOrCreateCA(certDir);

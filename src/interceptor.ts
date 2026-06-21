@@ -10,7 +10,8 @@ function getPatternService(): PatternMatchingService {
 
 /** Wait until the pattern service has finished loading (up to timeoutMs). */
 export async function waitForPatterns(timeoutMs = 2000): Promise<void> {
-  const svc = getPatternService();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const svc = getPatternService() as any;
   const deadline = Date.now() + timeoutMs;
   while (!svc.isInitialized && Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, 50));
@@ -26,7 +27,8 @@ export async function waitForPatterns(timeoutMs = 2000): Promise<void> {
  * that hits the apex domain before redirecting to www.
  */
 export function getInterceptHostnames(): string[] {
-  const patterns = getPatternService().apiPatterns as Array<{ domains?: string[] }> | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const patterns = (getPatternService() as any).apiPatterns as Array<{ domains?: string[] }> | undefined;
   const all = patterns?.flatMap((p) => p.domains ?? []) ?? [];
   return all.filter((d) => !all.some((other) => other !== d && other.endsWith(`.${d}`)));
 }
