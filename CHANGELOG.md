@@ -18,9 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   network service, unloads and removes the LaunchDaemon, and removes the trusted CA.
 - **`status` command** — reports daemon load state, CA trust, and per-service system proxy
   settings.
-- Capture scope: system-wide via the macOS system proxy (GUI/Electron apps) plus
-  machine-level `HTTP_PROXY`/`HTTPS_PROXY` for CLI tools. Apps that pin certificates or
-  ignore the system proxy are not captured.
+- Capture scope: GUI/Electron apps that honor the macOS system proxy. CLI tools (`curl`,
+  `python`, `node`) are not covered by the daemon — they need the `wrap` command instead.
+  Apps that pin certificates or ignore the system proxy are not captured.
 - New `src/daemon/` module (constants, exec wrapper, trust-store, system-proxy, launchd,
   and install/uninstall/status orchestrators) with unit tests covering plist generation
   and the exact `security`/`networksetup`/`launchctl` argument vectors.

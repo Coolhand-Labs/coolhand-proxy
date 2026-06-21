@@ -77,9 +77,9 @@ coolhand-proxy status      # check it's running and the proxy is pointed at us
 sudo coolhand-proxy uninstall   # fully revert
 ```
 
-> macOS only for now. GUI/Electron AI apps honor the system proxy; CLI tools are also
-> covered via machine-level `HTTP_PROXY`/`HTTPS_PROXY`. Apps that pin certificates or
-> ignore the system proxy are not captured.
+> macOS only for now. GUI/Electron apps that honor the macOS system proxy are captured.
+> CLI tools (`curl`, `python`, `node`) are not — they require the `wrap` command instead.
+> Apps that pin certificates or ignore the system proxy are not captured.
 
 ## Commands
 
