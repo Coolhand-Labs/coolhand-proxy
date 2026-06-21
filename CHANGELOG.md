@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`install` command** — sets up the proxy as an always-on background service for
   non-technical users: trusts the CA in the System keychain, writes a LaunchDaemon
-  (`RunAtLoad` + `KeepAlive`, API key baked into its environment) that starts at boot and
+  (`RunAtLoad` + `KeepAlive`, config dir baked into its environment) that starts at boot and
   restarts on failure, and points the macOS system network proxy at the local daemon.
   Requires `sudo`.
 - **`uninstall` command** — fully reverses `install`: disables the system proxy on each

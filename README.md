@@ -135,9 +135,9 @@ sudo coolhand-proxy install
 ```
 
 The API key is read automatically from the credentials stored by `coolhand login`
-(`~/.coolhand/config.json`). Alternatively, set `COOLHAND_API_KEY` in your environment
-before running `install`. The config file path is baked into the daemon so key rotations
-via `coolhand login` take effect on the next daemon restart with no reinstall needed.
+(`~/.coolhand/config.json`). The config file path is baked into the daemon so key
+rotations via `coolhand login` take effect on the next daemon restart with no reinstall
+needed.
 
 ### `coolhand-proxy uninstall` (macOS)
 

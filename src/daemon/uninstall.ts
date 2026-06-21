@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import { getCertPath } from "../certs.ts";
+import { resolveHomeDir } from "../creds.ts";
 import { PLIST_PATH, getDaemonPaths } from "./constants.ts";
 import { run } from "./exec.ts";
 import { fingerprintSha1, untrustCert } from "./trust-store.ts";
@@ -14,7 +15,7 @@ import type { DaemonDeps } from "./install.ts";
 export async function uninstall(deps: DaemonDeps = {}): Promise<void> {
   const exec = deps.exec ?? run;
   const log = deps.log ?? (() => {});
-  const { certDir } = getDaemonPaths();
+  const { certDir } = getDaemonPaths(resolveHomeDir());
 
   log("1/4 Turning off the system proxy on each network service…");
   try {
