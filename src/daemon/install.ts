@@ -8,6 +8,7 @@ import { run, type Executor } from "./exec.ts";
 import { trustCert } from "./trust-store.ts";
 import { generatePlist, bootstrap, bootout } from "./launchd.ts";
 import { listActiveServices, enableProxy } from "./system-proxy.ts";
+import { installEnvAgent, resolveUserId } from "./env-agent.ts";
 
 export interface DaemonDeps {
   readonly exec?: Executor;
@@ -45,14 +46,14 @@ export async function install(configDir: string, deps: DaemonDeps = {}): Promise
   const log = deps.log ?? (() => {});
   const { certDir, logFile } = getDaemonPaths(resolveHomeDir());
 
-  log("1/5 Ensuring CA certificate exists…");
+  log("1/6 Ensuring CA certificate exists…");
   await getOrCreateCA(certDir);
   const certPath = getCertPath(certDir);
 
-  log("2/5 Trusting CA in the System keychain…");
+  log("2/6 Trusting CA in the System keychain…");
   await trustCert(certPath, undefined, exec);
 
-  log("3/5 Writing LaunchDaemon plist…");
+  log("3/6 Writing LaunchDaemon plist…");
   const plist = generatePlist({
     label: SERVICE_LABEL,
     programArguments: defaultProgramArguments(certDir),
@@ -62,17 +63,21 @@ export async function install(configDir: string, deps: DaemonDeps = {}): Promise
   fs.mkdirSync(path.dirname(logFile), { recursive: true });
   fs.writeFileSync(PLIST_PATH, plist, { mode: 0o644 });
 
-  log("4/5 Loading the daemon (launchctl bootstrap)…");
+  log("4/6 Loading the daemon (launchctl bootstrap)…");
   // Best-effort unload first so a re-install doesn't fail on "already loaded".
   await bootout(undefined, exec).catch(() => {});
   await bootstrap(PLIST_PATH, exec);
 
-  log("5/5 Pointing system network services at the proxy…");
+  log("5/6 Pointing system network services at the proxy…");
   const services = await listActiveServices(exec);
   for (const service of services) {
     await enableProxy(service, LOCALHOST, PROXY_PORT, exec);
     log(`      • ${service} → ${LOCALHOST}:${PROXY_PORT}`);
   }
+
+  log("6/6 Installing env-var agent so CLI tools inherit the proxy…");
+  const uid = await resolveUserId(exec);
+  await installEnvAgent(resolveHomeDir(), certPath, uid, process.env["SUDO_USER"], exec);
 
   log("Done. The proxy is running and will restart on boot.");
 }

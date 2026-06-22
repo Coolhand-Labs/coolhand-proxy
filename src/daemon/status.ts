@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import { getCertPath } from "../certs.ts";
 import { resolveHomeDir } from "../creds.ts";
-import { PROXY_PORT, getDaemonPaths } from "./constants.ts";
+import { PROXY_PORT, getDaemonPaths, getEnvAgentPlistPath } from "./constants.ts";
 import { run, type Executor } from "./exec.ts";
 import { fingerprintSha1, isCertPresent } from "./trust-store.ts";
 import { isLoaded } from "./launchd.ts";
@@ -19,6 +19,8 @@ export interface DaemonStatus {
   readonly daemonLoaded: boolean;
   readonly certTrusted: boolean;
   readonly services: readonly ServiceProxyStatus[];
+  /** Whether the CLI env-var LaunchAgent plist is present on disk. */
+  readonly envAgentInstalled: boolean;
 }
 
 /** Gather a full picture of whether the daemon is installed and active. */
@@ -46,7 +48,9 @@ export async function getStatus(deps: DaemonDeps = {}): Promise<DaemonStatus> {
     // leave services empty if enumeration fails
   }
 
-  return { daemonLoaded, certTrusted, services };
+  const envAgentInstalled = fs.existsSync(getEnvAgentPlistPath(resolveHomeDir()));
+
+  return { daemonLoaded, certTrusted, services, envAgentInstalled };
 }
 
 /** Human-readable one-screen status report. */
@@ -55,6 +59,7 @@ export function formatStatus(status: DaemonStatus): string {
   const lines = [
     `Daemon loaded:  ${yn(status.daemonLoaded)}`,
     `CA trusted:     ${yn(status.certTrusted)}`,
+    `CLI env agent:  ${yn(status.envAgentInstalled)}`,
     `Expected port:  ${PROXY_PORT}`,
     "Network services:",
   ];

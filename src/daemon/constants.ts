@@ -4,6 +4,14 @@ import * as path from "node:path";
 /** launchd service label — also the plist basename. */
 export const SERVICE_LABEL = "com.coolhandlabs.proxy";
 
+/** User LaunchAgent label for propagating proxy env vars to CLI tools. */
+export const ENV_AGENT_LABEL = "com.coolhandlabs.proxy.env";
+
+/** Path to the per-user LaunchAgent plist (in the real user's home). */
+export function getEnvAgentPlistPath(homeDir: string): string {
+  return path.join(homeDir, "Library", "LaunchAgents", `${ENV_AGENT_LABEL}.plist`);
+}
+
 /**
  * Fixed localhost port the daemon listens on. Must be stable so the macOS
  * system proxy can keep pointing at it across reboots. Chosen high/uncommon
