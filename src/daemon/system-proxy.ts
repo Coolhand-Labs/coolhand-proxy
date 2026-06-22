@@ -28,7 +28,7 @@ export function parseNetworkServices(raw: string): string[] {
  */
 export function parseGetWebProxy(raw: string): ProxySetting {
   const enabled = /^Enabled:\s*Yes/im.test(raw);
-  const server = raw.match(/^Server:\s*(.*)$/im)?.[1]?.trim() ?? "";
+  const server = raw.match(/^Server:[ \t]*(.*)$/im)?.[1]?.trim() ?? "";
   const port = Number(raw.match(/^Port:\s*(\d+)/im)?.[1] ?? 0);
   return { enabled, server, port };
 }

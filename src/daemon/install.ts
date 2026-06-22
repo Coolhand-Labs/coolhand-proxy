@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import { getOrCreateCA, getCertPath } from "../certs.ts";
 import { resolveHomeDir } from "../creds.ts";
 import { PLIST_PATH, PROXY_PORT, SERVICE_LABEL, getDaemonPaths } from "./constants.ts";
@@ -21,7 +22,7 @@ const LOCALHOST = "127.0.0.1";
  * daemon and installer agree regardless of root's $HOME.
  */
 export function defaultProgramArguments(certDir: string): string[] {
-  const cliJs = path.join(import.meta.dirname, "cli.js");
+  const cliJs = path.join(path.dirname(fileURLToPath(import.meta.url)), "cli.js");
   return [
     process.execPath,
     cliJs,
