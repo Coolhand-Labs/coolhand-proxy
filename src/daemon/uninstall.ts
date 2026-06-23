@@ -7,6 +7,7 @@ import { fingerprintSha1, untrustCert } from "./trust-store.ts";
 import { bootout } from "./launchd.ts";
 import { listActiveServices, disableProxy } from "./system-proxy.ts";
 import { uninstallEnvAgent, resolveUserId } from "./env-agent.ts";
+import { removeFromShellProfile } from "./shell-profile.ts";
 import type { DaemonDeps } from "./install.ts";
 
 /**
@@ -48,12 +49,19 @@ export async function uninstall(deps: DaemonDeps = {}): Promise<void> {
     log("      (cert not present or already removed)");
   }
 
-  log("5/5 Removing the CLI env-var agent…");
+  log("5/6 Removing the CLI LaunchAgent…");
   try {
     const uid = await resolveUserId(exec);
     await uninstallEnvAgent(resolveHomeDir(), uid, exec);
   } catch {
     log("      (env agent not present or already removed)");
+  }
+
+  log("6/6 Removing proxy env vars from ~/.zprofile…");
+  try {
+    removeFromShellProfile(resolveHomeDir());
+  } catch {
+    log("      (nothing to remove)");
   }
 
   log("Done. System proxy reverted and daemon removed.");

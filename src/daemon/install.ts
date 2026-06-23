@@ -9,6 +9,7 @@ import { trustCert } from "./trust-store.ts";
 import { generatePlist, bootstrap, bootout } from "./launchd.ts";
 import { listActiveServices, enableProxy } from "./system-proxy.ts";
 import { installEnvAgent, resolveUserId } from "./env-agent.ts";
+import { writeShellProfile } from "./shell-profile.ts";
 
 export interface DaemonDeps {
   readonly exec?: Executor;
@@ -75,9 +76,12 @@ export async function install(configDir: string, deps: DaemonDeps = {}): Promise
     log(`      • ${service} → ${LOCALHOST}:${PROXY_PORT}`);
   }
 
-  log("6/6 Installing env-var agent so CLI tools inherit the proxy…");
+  log("6/7 Installing LaunchAgent for non-terminal processes…");
   const uid = await resolveUserId(exec);
   await installEnvAgent(resolveHomeDir(), certPath, uid, process.env["SUDO_USER"], exec);
+
+  log("7/7 Writing proxy env vars to ~/.zprofile (new terminal sessions)…");
+  writeShellProfile(resolveHomeDir(), certPath);
 
   log("Done. The proxy is running and will restart on boot.");
 }

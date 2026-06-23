@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import { getCertPath } from "../certs.ts";
 import { resolveHomeDir } from "../creds.ts";
 import { PROXY_PORT, getDaemonPaths, getEnvAgentPlistPath } from "./constants.ts";
+import { getShellProfilePath } from "./shell-profile.ts";
 import { run, type Executor } from "./exec.ts";
 import { fingerprintSha1, isCertPresent } from "./trust-store.ts";
 import { isLoaded } from "./launchd.ts";
@@ -21,6 +22,8 @@ export interface DaemonStatus {
   readonly services: readonly ServiceProxyStatus[];
   /** Whether the CLI env-var LaunchAgent plist is present on disk. */
   readonly envAgentInstalled: boolean;
+  /** Whether ~/.zprofile contains the proxy env-var block. */
+  readonly shellProfileInstalled: boolean;
 }
 
 /** Gather a full picture of whether the daemon is installed and active. */
@@ -48,9 +51,17 @@ export async function getStatus(deps: DaemonDeps = {}): Promise<DaemonStatus> {
     // leave services empty if enumeration fails
   }
 
-  const envAgentInstalled = fs.existsSync(getEnvAgentPlistPath(resolveHomeDir()));
+  const homeDir = resolveHomeDir();
+  const envAgentInstalled = fs.existsSync(getEnvAgentPlistPath(homeDir));
+  const shellProfileInstalled = (() => {
+    try {
+      return fs.readFileSync(getShellProfilePath(homeDir), "utf8").includes("# >>> coolhand-proxy begin >>>");
+    } catch {
+      return false;
+    }
+  })();
 
-  return { daemonLoaded, certTrusted, services, envAgentInstalled };
+  return { daemonLoaded, certTrusted, services, envAgentInstalled, shellProfileInstalled };
 }
 
 /** Human-readable one-screen status report. */
@@ -60,6 +71,7 @@ export function formatStatus(status: DaemonStatus): string {
     `Daemon loaded:  ${yn(status.daemonLoaded)}`,
     `CA trusted:     ${yn(status.certTrusted)}`,
     `CLI env agent:  ${yn(status.envAgentInstalled)}`,
+    `Shell profile:  ${yn(status.shellProfileInstalled)}`,
     `Expected port:  ${PROXY_PORT}`,
     "Network services:",
   ];
