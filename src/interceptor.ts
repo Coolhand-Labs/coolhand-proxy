@@ -8,6 +8,31 @@ function getPatternService(): PatternMatchingService {
   return _patternService;
 }
 
+/** Wait until the pattern service has finished loading (up to timeoutMs). */
+export async function waitForPatterns(timeoutMs = 2000): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const svc = getPatternService() as any;
+  const deadline = Date.now() + timeoutMs;
+  while (!svc.isInitialized && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 50));
+  }
+}
+
+/**
+ * Returns the set of hostnames whose TLS the proxy should intercept.
+ * All other HTTPS traffic is tunneled untouched — browsers see real certs.
+ *
+ * Bare domains (e.g. "openai.com") are dropped when a more-specific subdomain
+ * (e.g. "api.openai.com") is also present — avoids MITM-ing browser traffic
+ * that hits the apex domain before redirecting to www.
+ */
+export function getInterceptHostnames(): string[] {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const patterns = (getPatternService() as any).apiPatterns as Array<{ domains?: string[] }> | undefined;
+  const all = patterns?.flatMap((p) => p.domains ?? []) ?? [];
+  return all.filter((d) => !all.some((other) => other !== d && other.endsWith(`.${d}`)));
+}
+
 /**
  * Check if a URL matches a known AI API pattern.
  * Uses coolhand-node's PatternMatchingService which covers

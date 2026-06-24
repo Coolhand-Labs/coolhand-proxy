@@ -1,5 +1,5 @@
 import { defineConfig } from "tsup";
-import { readFileSync, writeFileSync } from "fs";
+import { chmodSync, readFileSync, writeFileSync } from "fs";
 
 export default defineConfig({
   entry: {
@@ -17,5 +17,6 @@ export default defineConfig({
     const cliPath = "dist/cli.js";
     const content = readFileSync(cliPath, "utf8");
     writeFileSync(cliPath, "#!/usr/bin/env node\n" + content);
+    chmodSync(cliPath, 0o755);
   },
 });

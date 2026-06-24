@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### 🖥️ System-wide background daemon (macOS)
+
+- **`install` command** — sets up the proxy as an always-on background service for
+  non-technical users: trusts the CA in the System keychain, writes a LaunchDaemon
+  (`RunAtLoad` + `KeepAlive`, config dir baked into its environment) that starts at boot and
+  restarts on failure, and points the macOS system network proxy at the local daemon.
+  Requires `sudo`.
+- **`uninstall` command** — fully reverses `install`: disables the system proxy on each
+  network service, unloads and removes the LaunchDaemon, and removes the trusted CA.
+- **`status` command** — reports daemon load state, CA trust, and per-service system proxy
+  settings.
+- Capture scope: GUI/Electron apps that honor the macOS system proxy. CLI tools (`curl`,
+  `python`, `node`) are not covered by the daemon — they need the `wrap` command instead.
+  Apps that pin certificates or ignore the system proxy are not captured.
+- New `src/daemon/` module (constants, exec wrapper, trust-store, system-proxy, launchd,
+  and install/uninstall/status orchestrators) with unit tests covering plist generation
+  and the exact `security`/`networksetup`/`launchctl` argument vectors.
+
 ## [0.0.1] - 2026-03-02
 
 ### 🎯 Core Capabilities
