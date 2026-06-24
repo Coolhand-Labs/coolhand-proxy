@@ -56,7 +56,7 @@ coolhand-proxy install-ca [options]
 
 ### Auto-injected environment variables
 
-The `wrap` command automatically sets these variables in the subprocess environment so Node.js, Python, and Ruby processes trust the proxy certificate without any manual configuration:
+The `wrap` command automatically sets these variables in the subprocess environment so Node.js and Python processes trust the proxy certificate without any manual configuration:
 
 | Variable | Value |
 |----------|-------|
