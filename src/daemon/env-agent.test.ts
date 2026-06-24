@@ -2,38 +2,38 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   generateEnvAgentPlist,
-  buildProxyEnv,
+  buildCertEnv,
   buildAgentBootstrapSpec,
   buildAgentBootoutSpec,
   buildAsUserUnsetenvSpec,
-  PROXY_ENV_KEYS,
+  CERT_ENV_KEYS,
 } from "./env-agent.ts";
 import { ENV_AGENT_LABEL } from "./constants.ts";
 
-describe("buildProxyEnv", () => {
-  const env = buildProxyEnv("/Users/alice/.coolhand-proxy/ca-cert.pem");
+describe("buildCertEnv", () => {
+  const certPath = "/Users/alice/.coolhand-proxy/ca-cert.pem";
+  const env = buildCertEnv(certPath);
 
-  it("sets HTTP_PROXY and HTTPS_PROXY to the fixed port", () => {
-    assert.equal(env["HTTP_PROXY"], "http://127.0.0.1:47821");
-    assert.equal(env["HTTPS_PROXY"], "http://127.0.0.1:47821");
-  });
-
-  it("sets cert vars to the provided cert path", () => {
-    const certPath = "/Users/alice/.coolhand-proxy/ca-cert.pem";
+  it("sets all three cert vars to the provided path", () => {
     assert.equal(env["SSL_CERT_FILE"], certPath);
     assert.equal(env["NODE_EXTRA_CA_CERTS"], certPath);
     assert.equal(env["REQUESTS_CA_BUNDLE"], certPath);
   });
 
-  it("covers every key in PROXY_ENV_KEYS", () => {
-    for (const key of PROXY_ENV_KEYS) {
+  it("does not include HTTP_PROXY or HTTPS_PROXY", () => {
+    assert.ok(!("HTTP_PROXY" in env));
+    assert.ok(!("HTTPS_PROXY" in env));
+  });
+
+  it("covers every key in CERT_ENV_KEYS", () => {
+    for (const key of CERT_ENV_KEYS) {
       assert.ok(key in env, `missing key: ${key}`);
     }
   });
 });
 
 describe("generateEnvAgentPlist", () => {
-  const vars = buildProxyEnv("/Users/alice/.coolhand-proxy/ca-cert.pem");
+  const vars = buildCertEnv("/Users/alice/.coolhand-proxy/ca-cert.pem");
   const xml = generateEnvAgentPlist(vars);
 
   it("includes the env agent label", () => {
@@ -45,10 +45,15 @@ describe("generateEnvAgentPlist", () => {
     assert.ok(xml.includes("<string>-c</string>"));
   });
 
-  it("emits a launchctl setenv call for each var", () => {
-    for (const key of PROXY_ENV_KEYS) {
+  it("emits a launchctl setenv call for each cert var", () => {
+    for (const key of CERT_ENV_KEYS) {
       assert.ok(xml.includes(`launchctl setenv ${key}`), `missing setenv for ${key}`);
     }
+  });
+
+  it("does not emit setenv for HTTP_PROXY or HTTPS_PROXY", () => {
+    assert.ok(!xml.includes("launchctl setenv HTTP_PROXY"));
+    assert.ok(!xml.includes("launchctl setenv HTTPS_PROXY"));
   });
 
   it("sets RunAtLoad to true", () => {
@@ -89,8 +94,8 @@ describe("buildAgentBootoutSpec", () => {
 
 describe("buildAsUserUnsetenvSpec", () => {
   it("produces the correct launchctl asuser unsetenv args", () => {
-    const spec = buildAsUserUnsetenvSpec(501, "HTTP_PROXY");
+    const spec = buildAsUserUnsetenvSpec(501, "SSL_CERT_FILE");
     assert.equal(spec.file, "launchctl");
-    assert.deepEqual(spec.args, ["asuser", "501", "launchctl", "unsetenv", "HTTP_PROXY"]);
+    assert.deepEqual(spec.args, ["asuser", "501", "launchctl", "unsetenv", "SSL_CERT_FILE"]);
   });
 });

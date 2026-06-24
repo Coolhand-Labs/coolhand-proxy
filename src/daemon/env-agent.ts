@@ -1,27 +1,24 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { ENV_AGENT_LABEL, PROXY_PORT, getEnvAgentPlistPath } from "./constants.ts";
+import { ENV_AGENT_LABEL, getEnvAgentPlistPath } from "./constants.ts";
 import { run, type CommandSpec, type Executor } from "./exec.ts";
 
-const PROXY_URL = `http://127.0.0.1:${PROXY_PORT}`;
-
 /**
- * The env vars this agent sets and unsets. Together they route HTTP/HTTPS
- * traffic through the proxy and trust the CA cert for Node.js, Python, and
- * any runtime that respects SSL_CERT_FILE.
+ * Only the CA-cert vars are set by the LaunchAgent. HTTP_PROXY/HTTPS_PROXY
+ * are intentionally excluded: setting them system-wide via launchd propagates
+ * to every user process (including GUI-app subprocesses like Conductor's yarn
+ * runner), which breaks tools that don't trust our CA. Terminal sessions pick
+ * up HTTP_PROXY from ~/.zprofile instead, where the scope is limited to
+ * interactive shells.
  */
-export const PROXY_ENV_KEYS = [
-  "HTTP_PROXY",
-  "HTTPS_PROXY",
+export const CERT_ENV_KEYS = [
   "SSL_CERT_FILE",
   "NODE_EXTRA_CA_CERTS",
   "REQUESTS_CA_BUNDLE",
 ] as const;
 
-export function buildProxyEnv(certPath: string): Record<string, string> {
+export function buildCertEnv(certPath: string): Record<string, string> {
   return {
-    HTTP_PROXY: PROXY_URL,
-    HTTPS_PROXY: PROXY_URL,
     SSL_CERT_FILE: certPath,
     NODE_EXTRA_CA_CERTS: certPath,
     REQUESTS_CA_BUNDLE: certPath,
@@ -38,14 +35,9 @@ function xmlEscape(value: string): string {
 }
 
 /**
- * Generate a LaunchAgent plist whose sole job is to call `launchctl setenv`
- * for each proxy var when the user logs in. Because the agent runs in the
- * user's GUI session (not as root), the vars land in the user's launchd
- * domain and are inherited by every subsequent process — including CLI tools
- * like `claude`, `curl`, and `python` that ignore the macOS system proxy.
- *
- * RunAtLoad fires the commands immediately when the agent is bootstrapped,
- * so there's no need to log out after `coolhand-proxy install`.
+ * Generate a LaunchAgent plist that sets the CA-cert env vars at login so
+ * that Node.js and Python processes in the user's session trust our CA cert.
+ * HTTP_PROXY/HTTPS_PROXY are NOT set here — see CERT_ENV_KEYS for rationale.
  */
 export function generateEnvAgentPlist(vars: Record<string, string>): string {
   const setenvCmds = Object.entries(vars)
@@ -97,11 +89,10 @@ export async function resolveUserId(exec: Executor = run): Promise<number> {
 }
 
 /**
- * Install the env-propagation LaunchAgent:
+ * Install the CA-cert LaunchAgent:
  *   1. Write the plist to ~/Library/LaunchAgents/
  *   2. chown it to the real user (when running under sudo)
- *   3. Bootstrap it into the user's GUI session — RunAtLoad fires immediately,
- *      setting the proxy env vars without requiring a logout
+ *   3. Bootstrap it into the user's GUI session — RunAtLoad fires immediately
  */
 export async function installEnvAgent(
   homeDir: string,
@@ -111,7 +102,7 @@ export async function installEnvAgent(
   exec: Executor = run,
 ): Promise<void> {
   const plistPath = getEnvAgentPlistPath(homeDir);
-  const vars = buildProxyEnv(certPath);
+  const vars = buildCertEnv(certPath);
 
   fs.mkdirSync(path.dirname(plistPath), { recursive: true });
   fs.writeFileSync(plistPath, generateEnvAgentPlist(vars), { mode: 0o644 });
@@ -139,7 +130,7 @@ export async function uninstallEnvAgent(
   const plistPath = getEnvAgentPlistPath(homeDir);
   fs.rmSync(plistPath, { force: true });
 
-  for (const key of PROXY_ENV_KEYS) {
+  for (const key of CERT_ENV_KEYS) {
     await exec(buildAsUserUnsetenvSpec(uid, key)).catch(() => {});
   }
 }
