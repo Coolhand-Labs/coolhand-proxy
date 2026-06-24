@@ -1,8 +1,5 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { PROXY_PORT } from "./constants.ts";
-
-const PROXY_URL = `http://127.0.0.1:${PROXY_PORT}`;
 const BLOCK_BEGIN = "# >>> coolhand-proxy begin >>>";
 const BLOCK_END = "# <<< coolhand-proxy end <<<";
 
@@ -13,8 +10,6 @@ export function getShellProfilePath(homeDir: string): string {
 export function generateShellBlock(certPath: string): string {
   return [
     BLOCK_BEGIN,
-    `export HTTP_PROXY=${PROXY_URL}`,
-    `export HTTPS_PROXY=${PROXY_URL}`,
     `export SSL_CERT_FILE=${certPath}`,
     `export NODE_EXTRA_CA_CERTS=${certPath}`,
     `export REQUESTS_CA_BUNDLE=${certPath}`,

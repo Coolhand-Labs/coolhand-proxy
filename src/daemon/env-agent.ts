@@ -17,6 +17,14 @@ export const CERT_ENV_KEYS = [
   "REQUESTS_CA_BUNDLE",
 ] as const;
 
+/** All keys ever set by this package — superset used on uninstall to ensure
+ *  cleanup even when upgrading from an older version that also set HTTP_PROXY. */
+const ALL_PROXY_ENV_KEYS = [
+  "HTTP_PROXY",
+  "HTTPS_PROXY",
+  ...CERT_ENV_KEYS,
+] as const;
+
 export function buildCertEnv(certPath: string): Record<string, string> {
   return {
     SSL_CERT_FILE: certPath,
@@ -130,7 +138,7 @@ export async function uninstallEnvAgent(
   const plistPath = getEnvAgentPlistPath(homeDir);
   fs.rmSync(plistPath, { force: true });
 
-  for (const key of CERT_ENV_KEYS) {
+  for (const key of ALL_PROXY_ENV_KEYS) {
     await exec(buildAsUserUnsetenvSpec(uid, key)).catch(() => {});
   }
 }
