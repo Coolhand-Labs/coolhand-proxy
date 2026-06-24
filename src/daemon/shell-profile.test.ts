@@ -2,21 +2,20 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { applyShellBlock, removeShellBlock, generateShellBlock } from "./shell-profile.ts";
 
-// Export PROXY_ENV_KEYS from shell-profile so tests can import them — but since
-// the keys are declared inline there, reference the known list here directly.
-const EXPECTED_KEYS = ["HTTP_PROXY", "HTTPS_PROXY", "SSL_CERT_FILE", "NODE_EXTRA_CA_CERTS", "REQUESTS_CA_BUNDLE"];
+const CERT_KEYS = ["SSL_CERT_FILE", "NODE_EXTRA_CA_CERTS", "REQUESTS_CA_BUNDLE"];
 
 describe("generateShellBlock", () => {
   const block = generateShellBlock("/Users/alice/.coolhand-proxy/ca-cert.pem");
 
-  it("exports all proxy env vars", () => {
-    for (const key of EXPECTED_KEYS) {
+  it("exports all cert env vars", () => {
+    for (const key of CERT_KEYS) {
       assert.ok(block.includes(`export ${key}=`), `missing export for ${key}`);
     }
   });
 
-  it("sets proxy URL to fixed port", () => {
-    assert.ok(block.includes("http://127.0.0.1:47821"));
+  it("does not export HTTP_PROXY or HTTPS_PROXY", () => {
+    assert.ok(!block.includes("export HTTP_PROXY="));
+    assert.ok(!block.includes("export HTTPS_PROXY="));
   });
 
   it("includes begin and end markers", () => {
@@ -29,7 +28,7 @@ describe("applyShellBlock", () => {
   it("appends block to an empty file", () => {
     const result = applyShellBlock("", "/cert.pem");
     assert.ok(result.includes("# >>> coolhand-proxy begin >>>"));
-    assert.ok(result.includes("export HTTP_PROXY="));
+    assert.ok(result.includes("export SSL_CERT_FILE="));
   });
 
   it("appends block after existing content with newline separator", () => {
@@ -53,7 +52,7 @@ describe("removeShellBlock", () => {
     const withBlock = applyShellBlock("preamble content\n", "/cert.pem");
     const removed = removeShellBlock(withBlock);
     assert.ok(!removed.includes("# >>> coolhand-proxy begin >>>"));
-    assert.ok(!removed.includes("export HTTP_PROXY="));
+    assert.ok(!removed.includes("export SSL_CERT_FILE="));
     assert.ok(removed.includes("preamble content"));
   });
 
