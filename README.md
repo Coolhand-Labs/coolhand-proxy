@@ -54,7 +54,7 @@ Use `start` when you want to run the proxy as a background service and manage th
 ```bash
 # Start the proxy — outputs JSON with connection details
 coolhand-proxy start
-# {"status":"ready","port":52341,"certPath":"/Users/you/.coolhand-proxy/ca-cert.pem"}
+# {"port":52341,"pid":12345,"certPath":"/Users/you/.coolhand-proxy/ca-cert.pem","httpProxy":"http://127.0.0.1:52341"}
 
 # Set these in your application process:
 export HTTP_PROXY=http://127.0.0.1:52341
@@ -91,13 +91,9 @@ Starts the proxy, runs `<command>` with proxy environment variables injected, an
 coolhand-proxy wrap [options] -- <command> [args...]
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `-p, --port <port>` | `0` (auto) | Port for the proxy to listen on |
-| `--cert-dir <dir>` | `~/.coolhand-proxy` | Directory to store CA certificate files |
-| `--api-endpoint <url>` | Coolhand default | Override the Coolhand API endpoint |
-| `--debug` | `false` | Log captured payloads locally; do not send to API |
-| `--silent` | `false` | Suppress proxy log output |
+Key options: `--port` (default: auto), `--debug` (log locally, don't send to API), `--silent` (suppress proxy output).
+
+See [Configuration →](docs/configuration.md) for the full options reference.
 
 ### `coolhand-proxy start`
 
@@ -107,13 +103,13 @@ Starts the proxy in daemon mode. Outputs a single JSON line to stdout when ready
 coolhand-proxy start [options]
 ```
 
-Output:
+Outputs a single JSON line to stdout when ready:
 
 ```json
-{"status":"ready","port":52341,"certPath":"/Users/you/.coolhand-proxy/ca-cert.pem"}
+{"port":52341,"pid":12345,"certPath":"/Users/you/.coolhand-proxy/ca-cert.pem","httpProxy":"http://127.0.0.1:52341"}
 ```
 
-Accepts the same options as `wrap` (`--port`, `--cert-dir`, `--api-endpoint`, `--debug`, `--silent`).
+Accepts the same options as `wrap`. See [Configuration →](docs/configuration.md) for the full reference.
 
 ### `coolhand-proxy install-ca`
 
@@ -169,19 +165,7 @@ coolhand-proxy status
 
 The `wrap` command automatically sets `SSL_CERT_FILE`, `NODE_EXTRA_CA_CERTS`, and `REQUESTS_CA_BUNDLE` in the subprocess environment, so Node.js and Python processes trust the proxy out of the box.
 
-For other runtimes or system-level trust, add the CA certificate to your system trust store:
-
-**macOS:**
-```bash
-sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain \
-  ~/.coolhand-proxy/ca-cert.pem
-```
-
-**Linux (Debian/Ubuntu):**
-```bash
-sudo cp ~/.coolhand-proxy/ca-cert.pem /usr/local/share/ca-certificates/coolhand-proxy.crt
-sudo update-ca-certificates
-```
+For other runtimes or system-level trust instructions, see [CA Certificate →](docs/configuration.md#ca-certificate).
 
 ## Supported LLM Providers
 
@@ -207,3 +191,15 @@ Traffic to all other domains passes through the proxy without being captured or 
 
 - Node.js >= 18
 - `COOLHAND_API_KEY` environment variable
+
+## Documentation
+
+- [Configuration reference](docs/configuration.md) — all flags, CA certificate setup, self-hosted endpoints
+
+## About Coolhand Labs
+
+Coolhand Labs builds observability and feedback tooling for LLM-powered applications. Learn more at [coolhandlabs.com](https://coolhandlabs.com).
+
+## License
+
+Apache 2.0
